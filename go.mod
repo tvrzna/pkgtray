@@ -7,3 +7,5 @@ require (
 	github.com/mattn/go-pointer v0.0.1 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 )
+
+replace github.com/tvrzna/pkgtray/checker => ./checker

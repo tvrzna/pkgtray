@@ -1,4 +1,4 @@
-package main
+package checker
 
 import (
 	"bufio"
@@ -9,16 +9,25 @@ import (
 	"strings"
 )
 
-func checkPackages(conf *config) int {
-	switch conf.pkgmanager.pkgType {
-	case apk:
-		return checkApk(conf.pkgmanagerPath)
-	case apt_get:
-		return checkAptGet(conf.pkgmanagerPath)
-	case pacman:
-		return checkPacman(conf.pkgmanagerPath)
-	case xbps:
-		return checkXbps(conf.pkgmanagerPath)
+type EnPkgManager int
+
+const (
+	Xbps EnPkgManager = iota
+	Pacman
+	Apk
+	Apt_get
+)
+
+func CheckPackages(pkgManager EnPkgManager, pkgManagerPath string) int {
+	switch pkgManager {
+	case Apk:
+		return checkApk(pkgManagerPath)
+	case Apt_get:
+		return checkAptGet(pkgManagerPath)
+	case Pacman:
+		return checkPacman(pkgManagerPath)
+	case Xbps:
+		return checkXbps(pkgManagerPath)
 	}
 	return -1
 }

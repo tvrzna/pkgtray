@@ -1,8 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
 
-const version = "0.1.0"
+	"github.com/tvrzna/pkgtray/checker"
+)
+
+const version = "0.1.1"
 
 var conf *config
 
@@ -10,7 +14,7 @@ func main() {
 	conf = loadConfig()
 
 	trayIcon := createTrayIcon(conf, func() int {
-		return checkPackages(conf)
+		return checker.CheckPackages(conf.pkgmanager.pkgType, conf.pkgmanagerPath)
 	})
 	trayIcon.processRefreshLoop()
 	trayIcon.start()

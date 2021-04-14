@@ -6,21 +6,14 @@ import (
 	"log"
 	"os"
 	"os/exec"
-)
 
-type enPkgManager int
-
-const (
-	xbps enPkgManager = iota
-	pacman
-	apk
-	apt_get
+	"github.com/tvrzna/pkgtray/checker"
 )
 
 type pkgManager struct {
 	name    string
 	command string
-	pkgType enPkgManager
+	pkgType checker.EnPkgManager
 }
 
 type config struct {
@@ -30,10 +23,10 @@ type config struct {
 }
 
 func loadConfig() *config {
-	xbpsPkgMngr := pkgManager{"xbps", "xbps-install", xbps}
-	pacmanPkgMngr := pkgManager{"pacman", "checkupdates", pacman}
-	apkPkgMngr := pkgManager{"apk", "apk", apk}
-	aptGetPkgManager := pkgManager{"apt-get", "apt-get", apt_get}
+	xbpsPkgMngr := pkgManager{"xbps", "xbps-install", checker.Xbps}
+	pacmanPkgMngr := pkgManager{"pacman", "checkupdates", checker.Pacman}
+	apkPkgMngr := pkgManager{"apk", "apk", checker.Apk}
+	aptGetPkgManager := pkgManager{"apt-get", "apt-get", checker.Apt_get}
 
 	pkgManagers := []pkgManager{xbpsPkgMngr, pacmanPkgMngr, apkPkgMngr}
 
