@@ -10,5 +10,5 @@ Options:
   -x, --xbps		use XBPS as desired package manager
   -p, --pacman		use Pacman as desired package manager
   -a, --apk		use Apk as desired package manager
-  -g, --apt-get		use apt-get desired package manager
+  -g, --apt-get		use apt-get as desired package manager
 ```
