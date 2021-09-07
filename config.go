@@ -1,12 +1,13 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 
+	"github.com/tvrzna/go-utils/args"
 	"github.com/tvrzna/pkgtray/checker"
 )
 
@@ -30,40 +31,9 @@ func loadConfig() *config {
 
 	pkgManagers := []pkgManager{xbpsPkgMngr, pacmanPkgMngr, apkPkgMngr}
 
-	conf := &config{}
+	conf := &config{intervalSeconds: 3600}
 
-	var useXbps bool
-	var usePacman bool
-	var useApk bool
-	var useAptGet bool
-	var interval int
-	var printHelp bool
-	var printVersion bool
-
-	flag.BoolVar(&printHelp, "h", false, "print this help")
-	flag.BoolVar(&printHelp, "-help", false, "print this help")
-
-	flag.BoolVar(&printVersion, "v", false, "print version")
-	flag.BoolVar(&printVersion, "-version", false, "print version")
-
-	flag.BoolVar(&useXbps, "x", false, "use XBPS as desired package manager")
-	flag.BoolVar(&useXbps, "-xbps", false, "use XBPS as desired package manager")
-
-	flag.BoolVar(&usePacman, "p", false, "use Pacman as desired package manager")
-	flag.BoolVar(&usePacman, "-pacman", false, "use Pacman as desired package manager")
-
-	flag.BoolVar(&useApk, "a", false, "use Apk as desired package manager")
-	flag.BoolVar(&useApk, "-apk", false, "use Apk as desired package manager")
-
-	flag.BoolVar(&useAptGet, "g", false, "use apt-get as desired package manager")
-	flag.BoolVar(&useAptGet, "-apt-get", false, "use apt-get as desired package manager")
-
-	flag.IntVar(&interval, "t", 3600, "time interval to check package manager for new updates")
-	flag.IntVar(&interval, "-time", 3600, "time interval to check package manager for new updates")
-
-	flag.Parse()
-
-	if printHelp {
+	if args.ContainsArg(os.Args, "-h", "--help") {
 		fmt.Println("Usage: pkgtray [options]")
 		fmt.Println("Options:")
 		fmt.Printf("  -h, --help\t\tprint this help\n")
@@ -76,20 +46,32 @@ func loadConfig() *config {
 		os.Exit(0)
 	}
 
-	if printVersion {
+	if args.ContainsArg(os.Args, "-v", "--version") {
 		fmt.Println(getVersion())
 		os.Exit(0)
 	}
 
-	if useXbps {
-		conf.pkgmanager = xbpsPkgMngr
-	} else if usePacman {
-		conf.pkgmanager = pacmanPkgMngr
-	} else if useApk {
-		conf.pkgmanager = apkPkgMngr
-	} else if useAptGet {
-		conf.pkgmanager = aptGetPkgManager
-	} else {
+	args.ParseArgs(os.Args, func(arg, nextArg string) {
+		switch arg {
+		case "-x", "--xbps":
+			conf.pkgmanager = xbpsPkgMngr
+		case "-p", "--pacman":
+			conf.pkgmanager = pacmanPkgMngr
+		case "-a", "--apk":
+			conf.pkgmanager = apkPkgMngr
+		case "-g", "--apt-get":
+			conf.pkgmanager = aptGetPkgManager
+		case "-t", "--time":
+			i, err := strconv.Atoi(nextArg)
+			if err != nil {
+				log.Printf("Unexpected time interval %s", nextArg)
+			} else {
+				conf.intervalSeconds = i
+			}
+		}
+	})
+
+	if conf.pkgmanager.command == "" {
 		log.Print("No package manager selected.")
 		for _, pkgManager := range pkgManagers {
 			path, err := exec.LookPath(pkgManager.command)
@@ -104,6 +86,8 @@ func loadConfig() *config {
 			log.Println("No supported package manager found!")
 			os.Exit(1)
 		}
+	} else {
+		log.Printf("Selected '%s' as package manager.", conf.pkgmanager.name)
 	}
 
 	if conf.pkgmanagerPath == "" {
@@ -113,12 +97,6 @@ func loadConfig() *config {
 		} else {
 			conf.pkgmanagerPath = conf.pkgmanager.command
 		}
-	}
-
-	if interval > 0 {
-		conf.intervalSeconds = interval
-	} else {
-		conf.intervalSeconds = 3600
 	}
 
 	return conf
